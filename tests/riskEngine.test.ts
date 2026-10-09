@@ -3,8 +3,8 @@ import * as fs from "fs";
 import * as path from "path";
 import {
   score, inherentScore, level, criticality, suggestedImpact, residual,
-  computeResidual, simulate, summarize, overallLevel, roundTo,
-  RiskControl, AppliedControl, CiaTarget
+  computeResidual, simulate, summarize, overallLevel, roundTo, levelRange,
+  RiskControl, AppliedControl, CiaTarget, RiskLevel
 } from "../lib/riskEngine";
 import { controls } from "../data/controls";
 
@@ -306,6 +306,54 @@ describe("riskEngine", () => {
       // Check that there is no import line (excluding potential comments if any, but regex is simple enough)
       expect(content).not.toMatch(/^import\s+/m);
       expect(content).not.toMatch(/require\(/m);
+    });
+  });
+
+  describe("levelRange()", () => {
+    const LEVELS: RiskLevel[] = ["Low", "Medium", "High", "Critical"];
+
+    it("returns the correct gte/lt for each level", () => {
+      expect(levelRange("Low")).toEqual({ gte: 0, lt: 5 });
+      expect(levelRange("Medium")).toEqual({ gte: 5, lt: 10 });
+      expect(levelRange("High")).toEqual({ gte: 10, lt: 17 });
+      expect(levelRange("Critical")).toEqual({ gte: 17, lt: null });
+    });
+
+    it("ranges are contiguous with no gaps or overlaps", () => {
+      const sorted = LEVELS.map(l => levelRange(l));
+      for (let i = 0; i < sorted.length - 1; i++) {
+        // each lt equals the next gte
+        expect(sorted[i].lt).toBe(sorted[i + 1].gte);
+      }
+      // first gte is 0
+      expect(sorted[0].gte).toBe(0);
+      // last lt is null (unbounded)
+      expect(sorted[sorted.length - 1].lt).toBeNull();
+    });
+
+    it("level(score) matches levelRange for every score 0..25 in steps of 0.01", () => {
+      for (let s = 0; s <= 25; s = Math.round((s + 0.01) * 1000) / 1000) {
+        const lvl = level(s);
+        const range = levelRange(lvl);
+        const normalized = Math.round(s * 1e9) / 1e9;
+        // gte
+        expect(normalized).toBeGreaterThanOrEqual(range.gte);
+        // lt
+        if (range.lt !== null) {
+          expect(normalized).toBeLessThan(range.lt);
+        }
+        // also confirm no other level's range contains this score
+        for (const otherLvl of LEVELS) {
+          if (otherLvl === lvl) continue;
+          const other = levelRange(otherLvl);
+          const inOther = normalized >= other.gte && (other.lt === null || normalized < other.lt);
+          expect(inOther).toBe(false);
+        }
+      }
+    });
+
+    it("throws on unknown level", () => {
+      expect(() => levelRange("Unknown" as RiskLevel)).toThrow(TypeError);
     });
   });
 });

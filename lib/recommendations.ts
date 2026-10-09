@@ -1,5 +1,5 @@
 import { AssetType, Severity, CostLevel } from "@/data/types";
-import { simulate, RiskPoint } from "@/lib/riskEngine";
+import { simulate, RiskPoint, RiskLevel } from "@/lib/riskEngine";
 
 export interface ThreatRow {
   key: string;
@@ -71,7 +71,23 @@ export interface RecommendationInput {
   excludeControlKeys?: string[];
 }
 
-export function recommendControls(view: LibraryView, input: RecommendationInput) {
+export interface CombinationInput {
+  assetType: AssetType;
+  threatKey: string;
+  vulnerabilityKey: string;
+}
+
+export interface CombinationResult {
+  threat: ThreatRow;
+  vulnerability: VulnerabilityRow;
+}
+
+/**
+ * Validates that the given (assetType, threatKey, vulnerabilityKey) combination
+ * exists in the library view and is internally consistent.
+ * Throws RecommendationError with the same codes that recommendControls used to throw.
+ */
+export function validateCombination(view: LibraryView, input: CombinationInput): CombinationResult {
   const threat = view.threats.find(t => t.key === input.threatKey);
   if (!threat) throw new RecommendationError("UNKNOWN_THREAT", "Unknown threat key");
 
@@ -89,6 +105,16 @@ export function recommendControls(view: LibraryView, input: RecommendationInput)
   if (!threat.vulnerabilityKeys.includes(input.vulnerabilityKey)) {
     throw new RecommendationError("VULNERABILITY_NOT_LINKED", "Vulnerability isn't linked to the threat");
   }
+
+  return { threat, vulnerability };
+}
+
+export function recommendControls(view: LibraryView, input: RecommendationInput) {
+  const { threat, vulnerability } = validateCombination(view, {
+    assetType: input.assetType,
+    threatKey: input.threatKey,
+    vulnerabilityKey: input.vulnerabilityKey,
+  });
 
   const excluded = new Set(input.excludeControlKeys || []);
   const recommendedKeys = vulnerability.recommendedControlKeys.filter(k => !excluded.has(k));
@@ -120,7 +146,7 @@ export function recommendControls(view: LibraryView, input: RecommendationInput)
 
   let baseline: RiskPoint | undefined;
   let projectedFinal: RiskPoint | undefined;
-  const recsWithScores = recommendations.map(r => ({ ...r, scoreBefore: 0, scoreAfter: 0, delta: 0, levelAfter: undefined as any }));
+  const recsWithScores = recommendations.map(r => ({ ...r, scoreBefore: 0, scoreAfter: 0, delta: 0, levelAfter: undefined as RiskLevel | undefined }));
 
   if (input.likelihood !== undefined && input.impact !== undefined) {
     const simControls = controls.map(c => ({ id: c.key, effectiveness: c.effectiveness, reduces: c.reduces }));

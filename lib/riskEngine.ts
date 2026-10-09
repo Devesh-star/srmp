@@ -291,3 +291,19 @@ export function overallLevel(overall: number): RiskLevel {
   if (normalized < 68) return "High";
   return "Critical";
 }
+
+/**
+ * Returns the score range [gte, lt) for a given risk level.
+ * lt is null for Critical (open upper bound at MAX_SCORE).
+ * Boundaries use the same 9-decimal normalisation as level().
+ * Low: [0, 5)  Medium: [5, 10)  High: [10, 17)  Critical: [17, null)
+ */
+export function levelRange(lvl: RiskLevel): { gte: number; lt: number | null } {
+  switch (lvl) {
+    case "Low":      return { gte: 0,  lt: 5 };
+    case "Medium":   return { gte: 5,  lt: 10 };
+    case "High":     return { gte: 10, lt: 17 };
+    case "Critical": return { gte: 17, lt: null };
+    default: throw new TypeError(`Unknown risk level: ${lvl}`);
+  }
+}
