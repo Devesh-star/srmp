@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { AppError } from "@/lib/errors";
+import { connectDB } from "@/lib/db";
 
 export async function requireAuth(roles?: string[]) {
+  await connectDB();
   const session = await auth();
   if (!session) {
     throw new AppError(401, "Unauthorized");

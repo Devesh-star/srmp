@@ -144,8 +144,9 @@ function computeOverallBands(): Array<{ level: RiskLevel; from: number; to: numb
 export const dashboardService = {
   async getDashboard(
     ctx: Ctx,
-    options: { basis: "inherent" | "residual"; trendLimit: number }
+    options: { basis: "inherent" | "residual"; trendLimit?: number }
   ): Promise<DashboardDTO> {
+    const trendLimit = options.trendLimit ?? 12;
     const generatedAt = new Date().toISOString();
 
     // 1. Guard against unbounded risk datasets
@@ -202,7 +203,7 @@ export const dashboardService = {
       Assessment.findOne({ organizationId: ctx.organizationId })
         .sort({ date: -1 })
         .lean(),
-      assessmentService.getTrend(ctx, { limit: options.trendLimit }),
+      assessmentService.getTrend(ctx, { limit: trendLimit }),
     ]);
 
     // Lookup Maps

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAuth } from "@/lib/api/route";
+import { connectDB } from "@/lib/db";
 import { matrixService } from "@/services/matrixService";
 import { Asset } from "@/models/Asset";
 
@@ -11,22 +12,10 @@ interface MatrixPageProps {
   }>;
 }
 
-function getCellColorClasses(level: string): string {
-  switch (level) {
-    case "Low":
-      return "bg-emerald-950/40 border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/60";
-    case "Medium":
-      return "bg-amber-950/40 border-amber-800/60 text-amber-300 hover:bg-amber-900/60";
-    case "High":
-      return "bg-orange-950/40 border-orange-800/60 text-orange-300 hover:bg-orange-900/60";
-    case "Critical":
-      return "bg-rose-950/40 border-rose-800/60 text-rose-300 hover:bg-rose-900/60";
-    default:
-      return "bg-slate-900 border-slate-800 text-slate-300";
-  }
-}
+import { getLevelCellClasses } from "@/lib/ui/levelStyles";
 
 export default async function RiskMatrixPage({ searchParams }: MatrixPageProps) {
+  await connectDB();
   let ctx;
   try {
     ctx = await requireAuth(["admin", "assessor", "viewer"]);
@@ -190,7 +179,7 @@ export default async function RiskMatrixPage({ searchParams }: MatrixPageProps) 
                     return (
                       <div
                         key={i}
-                        className={`border rounded-lg p-3 min-h-[90px] flex flex-col justify-between transition-all ${getCellColorClasses(
+                        className={`border rounded-lg p-3 min-h-[90px] flex flex-col justify-between transition-all ${getLevelCellClasses(
                           cell.level
                         )}`}
                       >

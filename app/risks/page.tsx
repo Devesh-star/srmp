@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAuth } from "@/lib/api/route";
+import { connectDB } from "@/lib/db";
 import { riskService } from "@/services/riskService";
 import { roundTo } from "@/lib/riskEngine";
 
@@ -48,6 +49,7 @@ function getStatusBadgeClasses(status: string): string {
 }
 
 export default async function RiskRegisterPage({ searchParams }: RiskPageProps) {
+  await connectDB();
   let ctx;
   try {
     ctx = await requireAuth(["admin", "assessor", "viewer"]);
@@ -89,6 +91,12 @@ export default async function RiskRegisterPage({ searchParams }: RiskPageProps) 
         </div>
 
         <div className="flex items-center space-x-3">
+          <Link
+            href="/risks/new"
+            className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 transition-colors"
+          >
+            + New Risk Assessment
+          </Link>
           <Link
             href="/risks/matrix"
             className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors"

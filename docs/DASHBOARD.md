@@ -63,3 +63,41 @@ This document specifies the core definitions, calculations, chart purposes, and 
 1. **Control Independence**: Projected risk calculations assume security controls reduce likelihood and impact independently without compounding synergies or negative interference.
 2. **Estimated Control Effectiveness**: Effectiveness percentages originate from standard security library estimates and require qualitative validation.
 3. **Averaging Masking**: Because `summarize().overall` computes a mean across all risks, large numbers of low-severity risks can mathematically dilute a critical exposure. Decisions must always review the accompanying `maxScore` and `Critical` count cards.
+
+---
+
+## 5. End-to-End Walkthrough & Demo Script
+
+Follow this step-by-step walkthrough to demonstrate the complete risk management lifecycle across phases:
+
+1. **Executive Dashboard (`/dashboard`)**:
+   - Navigate to `/dashboard` (or root `/` which redirects to `/dashboard`).
+   - Review the Executive Hero row: Overall risk score on 0–100 scale alongside worst single risk score (0–25) and severity badges.
+   - Observe the Projected risk card estimating risk reduction if all planned controls are implemented.
+   - Toggle between **Residual Basis** and **Inherent Basis**: observe how severity counts, threat category breakdowns, top 10 risks, and asset rankings update dynamically, while Inherent-vs-Residual, Control Progress, and Historical Trend remain fixed benchmarks.
+   - Explore the charts (Risk Distribution, Risk by Threat Category, Top Risks, Vulnerable Assets, Inherent vs Residual, Control Implementation Progress, and Compact 5×5 Matrix).
+   - Use the **"View data as table"** toggle on any chart to inspect underlying data in semantic HTML tables.
+
+2. **Investigate Top Exposure (`/risks/[riskId]` and `/asset-risk/[assetId]`)**:
+   - In the "Top 10 Risks" chart or "Most Vulnerable Assets" chart, click on the highest-priority item (e.g. Student Database / Data Breach).
+   - Review the asset risk detail page (`/asset-risk/[assetId]`): confirm the asset level obeys the "worst risk" rule, and inspect all associated risks and CIA criticality scores.
+   - Click "Simulate ⚡" on the risk row or navigate directly to the Simulator.
+
+3. **What-If Risk Simulator (`/simulator`)**:
+   - Search for and select a risk scenario using the accessible combobox (or click one of the suggested example links).
+   - Inspect the baseline inherent score and current stored residual score.
+   - Click **"Clear"** to view pure inherent risk.
+   - Sequentially check security controls from the recommended library and general catalog:
+     - Notice the diminishing returns per added control and the step-by-step mitigation cascade.
+     - Reorder controls using **Move Up** / **Move Down** buttons: verify that individual step deltas adjust according to sequence while the final score remains identical.
+     - Note the "Not attached yet" guidance on unattached controls prompting users to formalize them in the risk register.
+
+4. **Capture Assessment Snapshot**:
+   - Click **"Take Snapshot"** in the Dashboard header (available to Admins and Assessors).
+   - Enter an optional milestone label (e.g., "Executive Review Milestone") and confirm.
+   - The snapshot is saved immutably with zero modifications to underlying risk scores.
+
+5. **Verify Risk Posture Trend**:
+   - Return to the Dashboard and inspect the **Risk Trend Over Time** chart.
+   - Verify the trend chart displays the historical snapshot points plotted against the Contiguous Overall Severity Threshold bands (`Low`, `Medium`, `High`, `Critical`), terminating at the dashed "Live" posture point.
+   - Inspect the snapshot comparison badge in the hero row showing the exact delta between current live posture and the latest snapshot.

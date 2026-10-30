@@ -9,14 +9,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/" },
+  { label: "Dashboard", href: "/dashboard" },
   { label: "Risk Register", href: "/risks" },
   { label: "Risk Matrix", href: "/risks/matrix" },
+  { label: "Asset Risk", href: "/asset-risk" },
+  { label: "Simulator", href: "/simulator" },
   { label: "Assessments", href: "/assessments" },
-  { label: "Assets", href: "/assets" },
-  { label: "Threats", href: "/threats" },
-  { label: "Vulnerabilities", href: "/vulnerabilities" },
-  { label: "Controls", href: "/controls" },
 ];
 
 export function AppNav() {
@@ -30,17 +28,19 @@ export function AppNav() {
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md">
               CR
             </div>
-            <Link href="/" className="font-bold text-lg tracking-tight text-white hover:text-indigo-400">
+            <Link href="/dashboard" className="font-bold text-lg tracking-tight text-white hover:text-indigo-400">
               CyberRisk
             </Link>
           </div>
 
-          <nav className="hidden md:flex space-x-1" aria-label="Main Navigation">
+          <nav className="hidden md:flex space-x-1 overflow-x-auto py-2" aria-label="Main Navigation">
             {NAV_ITEMS.map((item) => {
               const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard" || pathname === "/"
+                  : item.href === "/risks"
+                    ? pathname === "/risks" || (pathname.startsWith("/risks/") && pathname !== "/risks/matrix")
+                    : pathname.startsWith(item.href);
 
               return (
                 <Link

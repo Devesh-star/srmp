@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Threat } from "@/models/Threat";
 import { Vulnerability } from "@/models/Vulnerability";
 import { Control } from "@/models/Control";
@@ -377,3 +378,25 @@ export async function runSeed(
   await seedDemoRisks(ctx);
   await seedDemoTreatments(ctx);
 }
+
+// CLI runner for `npm run seed`
+async function main() {
+  const uri = (process.env.MONGODB_URI && process.env.MONGODB_URI !== "placeholder_uri")
+    ? process.env.MONGODB_URI
+    : "mongodb://127.0.0.1:27017/srmp";
+
+  console.log(`[Seed] Connecting to MongoDB at ${uri}...`);
+  await mongoose.connect(uri);
+  console.log("[Seed] Connected. Populating library, assets, risks, treatments, and snapshots...");
+  await runSeed();
+  console.log("[Seed] Seeding completed successfully!");
+  await mongoose.disconnect();
+}
+
+if (!process.env.VITEST && (process.argv[1]?.endsWith("seed.ts") || process.argv[1]?.includes("seed"))) {
+  main().catch((err) => {
+    console.error("[Seed] Error during seeding:", err);
+    process.exit(1);
+  });
+}
+
